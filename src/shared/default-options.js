@@ -11,22 +11,26 @@ const defaultOptions = {
   linkReferenceStyle: "full",
   imageStyle: "markdown",
   imageRefStyle: "inlined",
-  frontmatter: "---\ncreated: {date:YYYY-MM-DDTHH:mm:ss} (UTC {date:Z})\ntags: [{keywords}]\nsource: {baseURI}\nauthor: {byline}\n---\n\n# {pageTitle}\n\n> ## Excerpt\n> {excerpt}\n\n---",
+  frontmatter:
+    "---\ncreated: {date:YYYY-MM-DDTHH:mm:ss} (UTC {date:Z})\ntags: [{keywords}]\nsource: {baseURI}\nauthor: {byline}\n---\n\n# {pageTitle}\n\n> ## Excerpt\n> {excerpt}\n\n---",
   backmatter: "",
   title: "{pageTitle}",
   includeTemplate: false,
   saveAs: false,
   downloadImages: false,
-  imagePrefix: '{pageTitle}/',
+  imagePrefix: "{pageTitle}/",
   mdClipsFolder: null,
-  disallowedChars: '[]#^',
-  downloadMode: 'downloadsApi',
+  disallowedChars: "[]#^",
+  downloadMode: "downloadsApi",
   turndownEscape: true,
+  timezone: "",
+  autoCopiedText: "",
   contextMenus: true,
   obsidianIntegration: false,
   obsidianVault: "",
   obsidianFolder: "",
-}
+  tags: "",
+};
 
 // function to get the options from storage and substitute default options if it fails
 async function getOptions() {
@@ -36,6 +40,6 @@ async function getOptions() {
   } catch (err) {
     console.error(err);
   }
-  if (!browser.downloads) options.downloadMode = 'contentLink';
+  if (!browser.downloads) options.downloadMode = "contentLink";
   return options;
 }

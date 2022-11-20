@@ -17,10 +17,28 @@
       <a href="#" class="button" id="document"><i class="check"></i>Entire Document</a>
     </div>
     <a href="#" class="button" id="includeTemplate"><i class="check"></i>Include front/back template</a>
-    <input type="text" id="title"></input>
+    <input type="text" id="title" class="input-text"></input>
+    <input type="text" class="input-text" style="display:none;" id="autoCopiedText"></input>
     <textarea id="md"></textarea>
+
+    <div class="p">
+      <div>
+        <label for="tags" class="text">Tags: </label>
+        <input type="text" class="input-text" id="tags"></input>
+
+      </div>
+      <div class="p checkbox-tags">
+        <input type="checkbox" id="Tech" value="Tech" ></input>
+        <label for="Tech" class="text">Tech </label>
+        <input type="checkbox" value="Politcs" id="Politics"></input>
+        <label for="Politics" class="text">Politics </label>
+      </div>
+    </div>
     <a href="#" class="button" id="download">Download</a>
     <a href="#" class="button" id="downloadSelection">Download selected</a>
+    <div class="p text-align-right">
+      <a href="#" class="text" id="options">Options</a>
+    </div>
   </div>
   <div id="spinner"></div>
   <script type="application/javascript" src="../browser-polyfill.min.js"></script>
