@@ -121,6 +121,12 @@ input[type="checkbox"] {
   display: flex;
 }
 
+.mr {
+  margin-right: 0.5em;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
 a.button {
   display: block;
   padding: 0.5em 0;

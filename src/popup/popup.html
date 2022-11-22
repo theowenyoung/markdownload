@@ -27,11 +27,7 @@
         <input type="text" class="input-text" id="tags"></input>
 
       </div>
-      <div class="p checkbox-tags">
-        <input type="checkbox" id="Tech" value="Tech" ></input>
-        <label for="Tech" class="text">Tech </label>
-        <input type="checkbox" value="Politcs" id="Politics"></input>
-        <label for="Politics" class="text">Politics </label>
+      <div id="checkbox-tags" class="p checkbox-tags row flex-wrap">
       </div>
     </div>
     <a href="#" class="button" id="download">Download</a>
@@ -42,6 +38,8 @@
   </div>
   <div id="spinner"></div>
   <script type="application/javascript" src="../browser-polyfill.min.js"></script>
+  <script type="application/javascript" src="../background/lodash.js"></script>
+  <script type="application/javascript" src="../background/transliteration.js"></script>
   <script type="application/javascript" src="lib/codemirror.js"></script>
   <script type="application/javascript" src="lib/modes/markdown/markdown.js"></script>
   <script type="application/javascript" src="popup.js"></script>

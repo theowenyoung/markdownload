@@ -3,6 +3,7 @@ var selectedText = null;
 var imageList = null;
 var mdClipsFolder = "";
 var article = null;
+var globalOptions = null;
 const darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
 // set up event handlers
 const cm = CodeMirror.fromTextArea(document.getElementById("md"), {
@@ -22,6 +23,29 @@ cm.on("cursorActivity", (cm) => {
 });
 document.getElementById("download").addEventListener("click", download);
 document.getElementById("options").addEventListener("click", openOptions);
+
+// add tags to checkbox
+// <input type="checkbox" id="Tech" value="Tech" ></input>
+// <label for="Tech" class="text">Tech </label>
+// id checkbox-tags
+function addTagsToCheckbox(tags) {
+  var checkboxTags = document.getElementById("checkbox-tags");
+  checkboxTags.innerHTML = "";
+  for (var i = 0; i < tags.length; i++) {
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.id = _slug(tags[i]);
+    checkbox.value = tags[i];
+    checkboxTags.appendChild(checkbox);
+    var label = document.createElement("label");
+    // add text class
+    label.classList.add("text");
+    label.classList.add("mr");
+    label.htmlFor = _slug(tags[i]);
+    label.appendChild(document.createTextNode(tags[i]));
+    checkboxTags.appendChild(label);
+  }
+}
 
 document
   .getElementById("downloadSelection")
@@ -166,7 +190,10 @@ browser.storage.sync
 browser.runtime.onMessage.addListener(notify);
 function getCurrentTags() {
   const tagsInput = document.getElementById("tags").value || "";
-  let tags = tagsInput.split(",").map((tag) => tag.trim());
+  let tags = tagsInput
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
 
   // get all check box vlaue
   const checkboxes = document.querySelectorAll(
@@ -193,19 +220,14 @@ function sendDownloadMessage(text) {
       .then(async (tabs) => {
         const tags = getCurrentTags();
         if (article) {
-          const response = await new Promise((resolve, reject) => {
-            browser.runtime.sendMessage(
-              {
-                type: "convertArticleToMarkdown",
-                article: article,
-              },
-              (response) => {
-                resolve(response);
-              }
-            );
+          const response = await browser.runtime.sendMessage({
+            type: "convertFrontmatter",
+            article: article,
+            markdown: text,
           });
           text = response.markdown;
         }
+
         var message = {
           type: "download",
           markdown: text,
@@ -214,7 +236,8 @@ function sendDownloadMessage(text) {
           imageList: imageList,
           mdClipsFolder: mdClipsFolder,
         };
-        return browser.runtime.sendMessage(message);
+        console.log("message", message);
+        return chrome.runtime.sendMessage(message);
       });
   }
 }
@@ -238,6 +261,14 @@ async function downloadSelection(e) {
 function notify(message) {
   // message for displaying markdown
   if (message.type == "display.md") {
+    globalOptions = message.options;
+    const tagsString = message.options.tags || "";
+    const tags = tagsString
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    addTagsToCheckbox(tags);
+
     // set the values from the message
     //document.getElementById("md").value = message.markdown;
     cm.setValue(message.markdown);
@@ -257,4 +288,11 @@ function notify(message) {
     document.getElementById("download").focus();
     cm.refresh();
   }
+}
+function _slug(string) {
+  // replace . to - to avoid file extension
+  const x = string.replace(/\./g, "-");
+  const kebab = _.kebabCase(x);
+  const sluged = slugify(kebab);
+  return sluged;
 }

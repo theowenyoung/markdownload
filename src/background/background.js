@@ -13,6 +13,14 @@ createMenus();
 
 TurndownService.prototype.defaultEscape = TurndownService.prototype.escape;
 
+function _slug(string) {
+  // replace . to - to avoid file extension
+  const x = string.replace(/\./g, "-");
+  const kebab = _.kebabCase(x);
+  const sluged = slugify(kebab);
+  return sluged;
+}
+
 // function to convert the article content to markdown using Turndown
 function turndown(content, options, article) {
   if (options.turndownEscape)
@@ -314,6 +322,19 @@ function textReplace(string, article, disallowedChars = null, options) {
   return string;
 }
 
+function convertFrontmatter(markdown, article) {
+  // get frontmatter from markdown
+  const frontmatter = markdown.match(/---(.|\n)*?---/g);
+  if (frontmatter && frontmatter.length > 1) {
+    console.log("frontmatter", frontmatter);
+    const finalFrontmatter = textReplace(frontmatter[1], article);
+    console.log("finalFrontmatter", finalFrontmatter);
+    console.log("markdown", markdown);
+    markdown = markdown.replace(frontmatter[1], finalFrontmatter);
+  }
+  return markdown;
+}
+
 // function to convert an article info object into markdown
 async function convertArticleToMarkdown(article, downloadImages = null) {
   const options = await getOptions();
@@ -564,13 +585,19 @@ function base64EncodeUnicode(str) {
 }
 
 //function that handles messages from the injected script into the site
-async function notify(message, sender, sendResponse) {
+async function notify(message, sender) {
   const options = await this.getOptions();
   // message for initial clipping of the dom
   if (message.type === "convertArticleToMarkdown") {
     const { markdown } = await convertArticleToMarkdown(message.article);
     const response = { markdown: markdown };
-    // sendResponse(response);
+    return response;
+  } else if (message.type === "convertFrontmatter") {
+    const markdown = await convertFrontmatter(
+      message.markdown,
+      message.article
+    );
+    const response = { markdown: markdown };
     return response;
   } else if (message.type == "clip") {
     // get the article info from the passed in dom
@@ -600,6 +627,7 @@ async function notify(message, sender, sendResponse) {
       article: article,
       imageList: imageList,
       mdClipsFolder: mdClipsFolder,
+      options: options,
     };
     // check options
     if (options.autoCopiedText) {
@@ -780,7 +808,7 @@ async function getArticleFromDom(domString, lang) {
   article.protocol = url.protocol;
   article.search = url.search;
   // title to slug
-  article.slug = slugify(article.title);
+  article.slug = _slug(article.title);
   article.tags = "[]";
   // get translated title
   // article.translatedTitle =

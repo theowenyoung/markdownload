@@ -42,6 +42,7 @@
       "/background/Readability.js",
       "shared/context-menus.js",
       "shared/default-options.js",
+      "background/lodash.js",
       "background/background.js"
     ]
   },

@@ -10,6 +10,7 @@ const saveOptions = (e) => {
     title: document.querySelector("[name='title']").value,
     timezone: document.querySelector("[name='timezone']").value,
     autoCopiedText: document.querySelector("[name='autoCopiedText']").value,
+    tags: document.querySelector("[name='tags']").value,
     disallowedChars: document.querySelector("[name='disallowedChars']").value,
     includeTemplate: document.querySelector("[name='includeTemplate']").checked,
     saveAs: document.querySelector("[name='saveAs']").checked,
@@ -123,6 +124,7 @@ const setCurrentChoice = (result) => {
   document.querySelector("[name='timezone']").value = options.timezone || "";
   document.querySelector("[name='autoCopiedText']").value =
     options.autoCopiedText || "";
+  document.querySelector("[name='tags']").value = options.tags || "";
   document.querySelector("[name='disallowedChars']").value =
     options.disallowedChars;
   document.querySelector("[name='includeTemplate']").checked =
