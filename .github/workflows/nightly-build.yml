@@ -35,8 +35,8 @@ jobs:
             ${{ runner.os }}-node-
       - name: Install dependencies
         run: cd src && npm i
-      - name: Build
-        run: npm run build
+      # - name: Build
+      #   run: npm run build
       # - uses: trmcnvn/firefox-addon@v1
       #   with:
       #     # uuid is only necessary when updating an existing addon,
@@ -46,8 +46,8 @@ jobs:
       #     manifest: manifest.json
       #     api-key: ${{ secrets.FIREFOX_API_KEY }}
       #     api-secret: ${{ secrets.FIREFOX_API_SECRET }}
-      - name: cd to src
-        run: cd src
+      # - name: cd to src
+        # run: cd src
       - name: "web-ext build"
         id: web-ext-build
         uses: kewisch/action-web-ext@v1
