@@ -5,3 +5,7 @@ start:
 .Phony: chrome
 chrome:
 	cd src && npm run start:chrome
+
+.Phony: build
+build:
+	cd src && npm run build 

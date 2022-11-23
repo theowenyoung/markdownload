@@ -1,0 +1,102 @@
+name: nightly release
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "src/manifest.json"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    concurrency: nightly-build
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      #https://stackoverflow.com/questions/61919141/read-json-file-in-github-actions
+      - id: set_var
+        run: |
+          content=`cat ./src/manifest.json`
+          echo "::set-output name=version::$(echo $content | jq -r '.version')"
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 
+      - name: Get npm cache directory
+        id: npm-cache-dir
+        run: |
+          echo "::set-output name=dir::$(npm config get cache)""npm"
+      - uses: actions/cache@v3
+        id: npm-cache # use this to check for `cache-hit` ==> if: steps.npm-cache.outputs.cache-hit != 'true'
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install dependencies
+        run: cd src && npm i
+      - name: Build
+        run: npm run build
+      # - uses: trmcnvn/firefox-addon@v1
+      #   with:
+      #     # uuid is only necessary when updating an existing addon,
+      #     # omitting it will create a new addon
+      #     uuid: '{5efceaa7-f3a2-4e59-a54b-85319448e305}'
+      #     xpi: dist/firefox-${{ env.NOW }}.zip
+      #     manifest: manifest.json
+      #     api-key: ${{ secrets.FIREFOX_API_KEY }}
+      #     api-secret: ${{ secrets.FIREFOX_API_SECRET }}
+      - name: "web-ext build"
+        id: web-ext-build
+        uses: kewisch/action-web-ext@v1
+        with:
+          cmd: build
+          source: src  
+          filename: "firefox-{name}-{version}.xpi"
+      # check version is 4 digits x.x.x.x
+      - name: Check version
+        id: check_version
+        continue-on-error: true
+        run: |
+          if [[ "${{ steps.set_var.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Version is nightly"
+          else
+            echo "Version is release"
+            exit 1
+          fi
+      #  # pack zip and read manifest, can be reused in the following steps
+      # - id: packExtensionDir
+      #   uses: cardinalby/webext-buildtools-pack-extension-dir-action@v1
+      #   with:
+      #     extensionDir: 'dist/chrome'
+      #     zipFilePath: 'dist/chrome-dist.zip'
+      # 
+      # - uses: cardinalby/webext-buildtools-chrome-crx-action@v2
+      #   with:
+      #     # zip file made at the packExtensionDir step
+      #     zipFilePath: 'dist/chrome-dist.zip'
+      #     crxFilePath: 'dist/chrome-immersive_translate-${{ steps.set_var.outputs.version }}.crx'
+      #     privateKey: ${{ secrets.CHROME_CRX_PRIVATE_KEY }}
+      - name: "web-ext sign"
+        if: steps.check_version.outcome == 'success'
+        id: web-ext-sign
+        uses: kewisch/action-web-ext@v1
+        with:
+          cmd: sign
+          source: ${{ steps.web-ext-build.outputs.target }} 
+          channel: unlisted
+          apiKey: ${{ secrets.FIREFOX_API_KEY }}
+          apiSecret: ${{ secrets.FIREFOX_API_SECRET }}
+          timeout: 900000
+
+      - name: release assets
+        if: steps.check_version.outcome == 'success'
+        uses: "marvinpinto/action-automatic-releases@v1.2.1"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          automatic_release_tag: "nightly-${{ steps.set_var.outputs.version }}"
+          prerelease: true
+          title: "Nightly Build ${{ steps.set_var.outputs.version }}"
+          files: |
+            ${{ steps.web-ext-sign.outputs.target }}
+
