@@ -82,7 +82,7 @@ jobs:
       #     crxFilePath: 'dist/chrome-immersive_translate-${{ steps.set_var.outputs.version }}.crx'
       #     privateKey: ${{ secrets.CHROME_CRX_PRIVATE_KEY }}
       - name: "web-ext sign"
-        if: steps.check_version.outcome == 'success'
+        # if: steps.check_version.outcome == 'success'
         id: web-ext-sign
         uses: kewisch/action-web-ext@v1
         with:
@@ -94,7 +94,7 @@ jobs:
           timeout: 900000
 
       - name: release assets
-        if: steps.check_version.outcome == 'success'
+        # if: steps.check_version.outcome == 'success'
         uses: "marvinpinto/action-automatic-releases@v1.2.1"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
