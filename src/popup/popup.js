@@ -219,13 +219,36 @@ function sendDownloadMessage(text) {
       })
       .then(async (tabs) => {
         const tags = getCurrentTags();
-        if (article) {
-          const response = await browser.runtime.sendMessage({
-            type: "convertFrontmatter",
-            article: article,
-            markdown: text,
-          });
-          text = response.markdown;
+        if (tags.length && text) {
+          // get text frontmatter yaml
+          const frontmatter = text.match(/---(.|\s)*?---/g);
+          if (frontmatter) {
+            // remove --- from frontmatter
+            const frontmatterText = frontmatter[0].replace(/---/g, "");
+            const frontmatterObj = jsyaml.load(frontmatterText);
+            let isChanged = false;
+            if (frontmatterObj.tags) {
+              frontmatterObj.tags = Array.from(
+                new Set(frontmatterObj.tags.concat(tags))
+              );
+              isChanged = true;
+            } else if (
+              frontmatterObj.taxonomies &&
+              frontmatterObj.taxonomies.tags
+            ) {
+              frontmatterObj.taxonomies.tags = Array.from(
+                new Set(frontmatterObj.taxonomies.tags.concat(tags))
+              );
+              isChanged = true;
+            }
+
+            if (isChanged) {
+              text = text.replace(
+                frontmatter[0],
+                "---\n" + jsyaml.dump(frontmatterObj) + "---"
+              );
+            }
+          }
         }
 
         var message = {
@@ -236,7 +259,6 @@ function sendDownloadMessage(text) {
           imageList: imageList,
           mdClipsFolder: mdClipsFolder,
         };
-        console.log("message", message);
         return chrome.runtime.sendMessage(message);
       });
   }

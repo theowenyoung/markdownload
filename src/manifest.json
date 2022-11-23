@@ -40,6 +40,7 @@
       "background/turndown.js",
       "background/turndown-plugin-gfm.js",
       "/background/Readability.js",
+      "background/js-yaml.js",
       "shared/context-menus.js",
       "shared/default-options.js",
       "background/lodash.js",

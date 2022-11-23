@@ -322,19 +322,6 @@ function textReplace(string, article, disallowedChars = null, options) {
   return string;
 }
 
-function convertFrontmatter(markdown, article) {
-  // get frontmatter from markdown
-  const frontmatter = markdown.match(/---(.|\n)*?---/g);
-  if (frontmatter && frontmatter.length > 1) {
-    console.log("frontmatter", frontmatter);
-    const finalFrontmatter = textReplace(frontmatter[1], article);
-    console.log("finalFrontmatter", finalFrontmatter);
-    console.log("markdown", markdown);
-    markdown = markdown.replace(frontmatter[1], finalFrontmatter);
-  }
-  return markdown;
-}
-
 // function to convert an article info object into markdown
 async function convertArticleToMarkdown(article, downloadImages = null) {
   const options = await getOptions();
@@ -588,18 +575,7 @@ function base64EncodeUnicode(str) {
 async function notify(message, sender) {
   const options = await this.getOptions();
   // message for initial clipping of the dom
-  if (message.type === "convertArticleToMarkdown") {
-    const { markdown } = await convertArticleToMarkdown(message.article);
-    const response = { markdown: markdown };
-    return response;
-  } else if (message.type === "convertFrontmatter") {
-    const markdown = await convertFrontmatter(
-      message.markdown,
-      message.article
-    );
-    const response = { markdown: markdown };
-    return response;
-  } else if (message.type == "clip") {
+  if (message.type == "clip") {
     // get the article info from the passed in dom
     let language;
     if (sender && sender.tab && sender.tab.id) {
