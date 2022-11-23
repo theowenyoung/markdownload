@@ -48,12 +48,14 @@ jobs:
       #     api-secret: ${{ secrets.FIREFOX_API_SECRET }}
       # - name: cd to src
         # run: cd src
+      - name: pwd
+        run: pwd
       - name: "web-ext build"
         id: web-ext-build
         uses: kewisch/action-web-ext@v1
         with:
           cmd: build
-          source: ./  
+          source: ./src  
           filename: "firefox-{name}-{version}.xpi"
       # check version is 4 digits x.x.x.x
       - name: Check version
