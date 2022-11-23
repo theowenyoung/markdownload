@@ -58,16 +58,16 @@ jobs:
           source: ./src  
           filename: "firefox-{name}-{version}.xpi"
       # check version is 4 digits x.x.x.x
-      - name: Check version
-        id: check_version
-        continue-on-error: true
-        run: |
-          if [[ "${{ steps.set_var.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Version is nightly"
-          else
-            echo "Version is release"
-            exit 1
-          fi
+      # - name: Check version
+      #   id: check_version
+      #   continue-on-error: true
+      #   run: |
+      #     if [[ "${{ steps.set_var.outputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+      #       echo "Version is nightly"
+      #     else
+      #       echo "Version is release"
+      #       exit 1
+      #     fi
       #  # pack zip and read manifest, can be reused in the following steps
       # - id: packExtensionDir
       #   uses: cardinalby/webext-buildtools-pack-extension-dir-action@v1
