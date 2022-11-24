@@ -9,7 +9,7 @@ const saveOptions = (e) => {
     backmatter: document.querySelector("[name='backmatter']").value,
     title: document.querySelector("[name='title']").value,
     timezone: document.querySelector("[name='timezone']").value,
-    autoCopiedText: document.querySelector("[name='autoCopiedText']").value,
+    customCopiedText: document.querySelector("[name='customCopiedText']").value,
     tags: document.querySelector("[name='tags']").value,
     disallowedChars: document.querySelector("[name='disallowedChars']").value,
     includeTemplate: document.querySelector("[name='includeTemplate']").checked,
@@ -122,8 +122,8 @@ const setCurrentChoice = (result) => {
   textareaInput.bind(document.querySelector("[name='backmatter']"))();
   document.querySelector("[name='title']").value = options.title;
   document.querySelector("[name='timezone']").value = options.timezone || "";
-  document.querySelector("[name='autoCopiedText']").value =
-    options.autoCopiedText || "";
+  document.querySelector("[name='customCopiedText']").value =
+    options.customCopiedText || "";
   document.querySelector("[name='tags']").value = options.tags || "";
   document.querySelector("[name='disallowedChars']").value =
     options.disallowedChars;

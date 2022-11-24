@@ -119,6 +119,7 @@ const clipSite = (id) => {
           type: "clip",
           dom: result[0].dom,
           selection: result[0].selection,
+          tabId: id,
         };
         return browser.storage.sync
           .get(defaultOptions)
@@ -221,32 +222,47 @@ function sendDownloadMessage(text) {
         const tags = getCurrentTags();
         if (tags.length && text) {
           // get text frontmatter yaml
-          const frontmatter = text.match(/---(.|\s)*?---/g);
-          if (frontmatter) {
+          const [RX_RECOGNIZE_YAML, RX_YAML] = createRegExp(
+            ["---yaml", "---"],
+            "= yaml =",
+            "---"
+          );
+          const match = RX_YAML.exec(text);
+          if (!match || match.index !== 0) {
+            throw new TypeError("Unexpected end of input");
+          }
+          const frontmatterText = match.at(-1)?.replace(/^\s+|\s+$/g, "") || "";
+          if (frontmatterText) {
             // remove --- from frontmatter
-            const frontmatterText = frontmatter[0].replace(/---/g, "");
-            const frontmatterObj = jsyaml.load(frontmatterText);
-            let isChanged = false;
-            if (frontmatterObj.tags) {
-              frontmatterObj.tags = Array.from(
-                new Set(frontmatterObj.tags.concat(tags))
-              );
-              isChanged = true;
-            } else if (
-              frontmatterObj.taxonomies &&
-              frontmatterObj.taxonomies.tags
-            ) {
-              frontmatterObj.taxonomies.tags = Array.from(
-                new Set(frontmatterObj.taxonomies.tags.concat(tags))
-              );
-              isChanged = true;
-            }
+            try {
+              const frontmatterObj = jsyaml.load(frontmatterText);
 
-            if (isChanged) {
-              text = text.replace(
-                frontmatter[0],
-                "---\n" + jsyaml.dump(frontmatterObj) + "---"
-              );
+              let isChanged = false;
+              if (frontmatterObj.tags) {
+                frontmatterObj.tags = Array.from(
+                  new Set(frontmatterObj.tags.concat(tags))
+                );
+                isChanged = true;
+              } else if (
+                frontmatterObj.taxonomies &&
+                frontmatterObj.taxonomies.tags
+              ) {
+                frontmatterObj.taxonomies.tags = Array.from(
+                  new Set(frontmatterObj.taxonomies.tags.concat(tags))
+                );
+                isChanged = true;
+              }
+
+              if (isChanged) {
+                text = text.replace(
+                  frontmatterText,
+                  jsyaml.dump(frontmatterObj)
+                );
+              }
+            } catch (err) {
+              console.error("parse yaml failed");
+              console.error(err);
+              console.error(`frontmatterText`, frontmatterText);
             }
           }
         }
@@ -296,9 +312,10 @@ function notify(message) {
     cm.setValue(message.markdown);
     article = message.article;
     document.getElementById("title").value = message.article.title;
-    if (message.autoCopiedText) {
-      document.querySelector("#autoCopiedText").style.display = "block";
-      document.querySelector("#autoCopiedText").value = message.autoCopiedText;
+    if (message.customCopiedText) {
+      document.querySelector("#customCopiedText").style.display = "block";
+      document.querySelector("#customCopiedText").value =
+        message.customCopiedText;
     }
     imageList = message.imageList;
     mdClipsFolder = message.mdClipsFolder;
@@ -317,4 +334,29 @@ function _slug(string) {
   const kebab = _.kebabCase(x);
   const sluged = slugify(kebab);
   return sluged;
+}
+function getBeginToken(delimiter) {
+  return Array.isArray(delimiter) ? delimiter[0] : delimiter;
+}
+
+function getEndToken(delimiter) {
+  return Array.isArray(delimiter) ? delimiter[1] : delimiter;
+}
+function createRegExp(...dv) {
+  const beginPattern = "(" + dv.map(getBeginToken).join("|") + ")";
+  const pattern =
+    "^(" +
+    "\\ufeff?" + // Maybe byte order mark
+    beginPattern +
+    "$([\\s\\S]+?)" +
+    "^(?:" +
+    dv.map(getEndToken).join("|") +
+    ")\\s*" +
+    "$" +
+    "(?:\\n)?)";
+
+  return [
+    new RegExp("^" + beginPattern + "$", "im"),
+    new RegExp(pattern, "im"),
+  ];
 }

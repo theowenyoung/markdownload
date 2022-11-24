@@ -578,8 +578,12 @@ async function notify(message, sender) {
   if (message.type == "clip") {
     // get the article info from the passed in dom
     let language;
+    let tabId = message.tabId;
     if (sender && sender.tab && sender.tab.id) {
-      language = await browser.tabs.detectLanguage(sender.tab.id);
+      tabId = sender.tab.id;
+    }
+    if (tabId) {
+      language = await browser.tabs.detectLanguage(tabId);
     }
     const article = await getArticleFromDom(message.dom, language);
 
@@ -606,9 +610,9 @@ async function notify(message, sender) {
       options: options,
     };
     // check options
-    if (options.autoCopiedText) {
-      displayMessage.autoCopiedText = textReplace(
-        options.autoCopiedText,
+    if (options.customCopiedText && tabId) {
+      displayMessage.customCopiedText = textReplace(
+        options.customCopiedText,
         article,
         null,
         options
@@ -649,6 +653,9 @@ browser.commands.onCommand.addListener(function (command) {
   } else if (command == "copy_tab_to_obsidian") {
     const info = { menuItemId: "copy-markdown-obsall" };
     copyMarkdownFromContext(info, tab);
+  } else if (comment === "copy_custom_copied_text") {
+    const info = { menuItemId: "copy-custom-copied-text" };
+    copyCustomCopiedText(info, tab);
   }
 });
 
@@ -679,6 +686,8 @@ browser.contextMenus.onClicked.addListener(function (info, tab) {
     info.menuItemId.startsWith("tabtoggle-")
   ) {
     toggleSetting(info.menuItemId.split("-")[1]);
+  } else if (info.menuItemId === "copy-custom-copied-text") {
+    copyCustomCopiedText(info, tab);
   }
 });
 
@@ -919,6 +928,33 @@ async function copyTabAsMarkdownLink(tab) {
   }
 }
 
+// function to copy a tab url as a markdown link
+async function copyCustomCopiedText(info, tab) {
+  try {
+    await ensureScripts(tab.id);
+    const options = await getOptions();
+    const article = await getArticleFromContent(tab.id);
+    let customCopiedText = "";
+    if (options.customCopiedText && tab.id) {
+      customCopiedText = textReplace(
+        options.customCopiedText,
+        article,
+        null,
+        options
+      );
+    }
+    if (customCopiedText) {
+      await browser.tabs.executeScript(tab.id, {
+        code: `copyToClipboard("${customCopiedText}")`,
+      });
+    }
+    // await navigator.clipboard.writeText(`[${title}](${article.baseURI})`);
+  } catch (error) {
+    // This could happen if the extension is not allowed to run code in
+    // the page, for example if the tab is a privileged page.
+    console.error("Failed to copy as markdown link: " + error);
+  }
+}
 // function to copy all tabs as markdown links
 async function copyTabAsMarkdownLinkAll(tab) {
   try {

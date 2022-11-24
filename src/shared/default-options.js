@@ -24,7 +24,7 @@ const defaultOptions = {
   downloadMode: "downloadsApi",
   turndownEscape: true,
   timezone: "",
-  autoCopiedText: "",
+  customCopiedText: "",
   contextMenus: true,
   obsidianIntegration: false,
   obsidianVault: "",
