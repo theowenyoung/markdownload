@@ -52,6 +52,10 @@ jobs:
         run: pwd
       - name: build
         run: cd src && npm run build
+      - name: move dist files
+        run: |
+          mkdir -p dist 
+          mv src/web-ext-artifacts/markdownload_-_markdown_web_clipper-${{ steps.set_var.outputs.version }}.zip dist/chrome-markdownload-${{ steps.set_var.outputs.version }}.zip
       - name: "web-ext build"
         id: web-ext-build
         uses: kewisch/action-web-ext@v1
@@ -94,13 +98,10 @@ jobs:
           apiKey: ${{ secrets.FIREFOX_API_KEY }}
           apiSecret: ${{ secrets.FIREFOX_API_SECRET }}
           timeout: 900000
-
       - name: move dist files
         run: |
           mkdir -p dist 
-          mv src/web-ext-artifacts/markdownload_-_markdown_web_clipper-${{ steps.set_var.outputs.version }}.zip dist/chrome-markdownload-${{ steps.set_var.outputs.version }}.zip
           mv ${{ steps.web-ext-sign.outputs.target }} dist/firefox-markdownload-${{ steps.set_var.outputs.version }}.xpi
-          rm -rf src/dist
       - name: release assets
         # if: steps.check_version.outcome == 'success'
         uses: "marvinpinto/action-automatic-releases@v1.2.1"
