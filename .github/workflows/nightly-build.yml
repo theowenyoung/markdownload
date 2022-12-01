@@ -55,7 +55,7 @@ jobs:
       - name: move dist files
         run: |
           mkdir -p dist 
-          mv src/web-ext-artifacts/markdownload_-_markdown_web_clipper-${{ steps.set_var.outputs.version }}.zip dist/chrome-markdownload-${{ steps.set_var.outputs.version }}.zip
+          mv src/web-ext-artifacts/markdownload_-_markdown_web_clipper_by_owen-${{ steps.set_var.outputs.version }}.zip dist/chrome-markdownload-${{ steps.set_var.outputs.version }}.zip
       - name: "web-ext build"
         id: web-ext-build
         uses: kewisch/action-web-ext@v1
