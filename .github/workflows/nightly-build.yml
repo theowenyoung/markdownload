@@ -95,15 +95,20 @@ jobs:
           apiSecret: ${{ secrets.FIREFOX_API_SECRET }}
           timeout: 900000
 
+      - name: move dist files
+        run: |
+          mkdir -p dist 
+          mv src/web-ext-artifacts/markdownload_-_markdown_web_clipper-${{ steps.set_var.outputs.version }}.zip dist/chrome-markdownload-${{ steps.set_var.outputs.version }}.zip
+          mv ${{ steps.web-ext-sign.outputs.target }} dist/firefox-markdownload-${{ steps.set_var.outputs.version }}.xpi
+          rm -rf src/dist
       - name: release assets
         # if: steps.check_version.outcome == 'success'
         uses: "marvinpinto/action-automatic-releases@v1.2.1"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           automatic_release_tag: "nightly-${{ steps.set_var.outputs.version }}"
-          prerelease: true
+          prerelease: false
           title: "Nightly Build ${{ steps.set_var.outputs.version }}"
           files: |
-            ${{ steps.web-ext-sign.outputs.target }}
-            src/web-ext-artifacts/*.zip
-
+            dist/*.zip
+            dist/*.xpi
