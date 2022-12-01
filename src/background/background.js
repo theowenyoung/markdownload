@@ -354,6 +354,7 @@ async function convertArticleToMarkdown(article, downloadImages = null) {
     // pre-download the images
     result = await preDownloadImages(result.imageList, result.markdown);
   }
+  console.log("result", result);
   return result;
 }
 
@@ -362,7 +363,7 @@ function generateValidFileName(title, disallowedChars = null) {
   if (!title) return title;
   else title = title + "";
   // remove < > : " / \ | ? *
-  var illegalRe = /[\/\?<>\\:\*\|":]/g;
+  var illegalRe = /[\/\?<>\\:\*\|":\(\)%]/g;
   // and non-breaking spaces (thanks @Licat)
   var name = title
     .replace(illegalRe, "")
@@ -370,7 +371,9 @@ function generateValidFileName(title, disallowedChars = null) {
 
   if (disallowedChars) {
     for (let c of disallowedChars) {
-      if (`[\\^$.|?*+()`.includes(c)) c = `\\${c}`;
+      if (`[\\^$.|?*+()`.includes(c)) {
+        c = `\\${c}`;
+      }
       name = name.replace(new RegExp(c, "g"), "");
     }
   }
@@ -905,7 +908,7 @@ async function downloadMarkdownFromContext(info, tab) {
     info.menuItemId == "download-markdown-selection"
   );
   const title = await formatTitle(article);
-  const { markdown, imageList } = await convertArticleToMarkdown(article);
+  const { markdown, mageList } = await convertArticleToMarkdown(article);
   // format the mdClipsFolder
   const mdClipsFolder = await formatMdClipsFolder(article);
   await downloadMarkdown(markdown, title, tab.id, imageList, mdClipsFolder);

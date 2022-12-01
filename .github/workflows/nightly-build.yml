@@ -50,6 +50,8 @@ jobs:
         # run: cd src
       - name: pwd
         run: pwd
+      - name: build
+        run: cd src && npm run build
       - name: "web-ext build"
         id: web-ext-build
         uses: kewisch/action-web-ext@v1
@@ -103,4 +105,5 @@ jobs:
           title: "Nightly Build ${{ steps.set_var.outputs.version }}"
           files: |
             ${{ steps.web-ext-sign.outputs.target }}
+            src/web-ext-artifacts/*.zip
 
