@@ -270,7 +270,7 @@ function sendDownloadMessage(text) {
         var message = {
           type: "download",
           markdown: text,
-          title: document.getElementById("title").value,
+          path: document.getElementById("path").value,
           tab: tabs[0],
           imageList: imageList,
           mdClipsFolder: mdClipsFolder,
@@ -311,12 +311,8 @@ function notify(message) {
     //document.getElementById("md").value = message.markdown;
     cm.setValue(message.markdown);
     article = message.article;
-    document.getElementById("title").value = message.article.title;
-    if (message.customCopiedText) {
-      document.querySelector("#customCopiedText").style.display = "block";
-      document.querySelector("#customCopiedText").value =
-        message.customCopiedText;
-    }
+    console.log("meesage", message);
+    document.getElementById("path").value = message.path;
     imageList = message.imageList;
     mdClipsFolder = message.mdClipsFolder;
 

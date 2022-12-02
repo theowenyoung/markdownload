@@ -5,7 +5,6 @@ browser.runtime.getPlatformInfo().then(async (platformInfo) => {
     : "Can't get browser info";
   console.info(platformInfo, browserInfo);
 });
-
 // add notification listener for foreground page messages
 browser.runtime.onMessage.addListener(notify);
 // create context menus
@@ -354,7 +353,6 @@ async function convertArticleToMarkdown(article, downloadImages = null) {
     // pre-download the images
     result = await preDownloadImages(result.imageList, result.markdown);
   }
-  console.log("result", result);
   return result;
 }
 
@@ -460,7 +458,7 @@ async function preDownloadImages(imageList, markdown) {
 // function to actually download the markdown file
 async function downloadMarkdown(
   markdown,
-  title,
+  path,
   tabId,
   imageList = {},
   mdClipsFolder = ""
@@ -482,7 +480,7 @@ async function downloadMarkdown(
       // start the download
       const id = await browser.downloads.download({
         url: url,
-        filename: mdClipsFolder + title + ".md",
+        filename: path,
         saveAs: options.saveAs,
       });
 
@@ -492,8 +490,8 @@ async function downloadMarkdown(
       // download images (if enabled)
       if (options.downloadImages) {
         // get the relative path of the markdown file (if any) for image path
-        const destPath =
-          mdClipsFolder + title.substring(0, title.lastIndexOf("/"));
+        let destPath = posix.dirname(path);
+
         if (destPath && !destPath.endsWith("/")) destPath += "/";
         Object.entries(imageList).forEach(async ([src, filename]) => {
           // start the download of the image
@@ -533,10 +531,7 @@ async function downloadMarkdown(
   else {
     try {
       await ensureScripts(tabId);
-      const filename =
-        mdClipsFolder +
-        generateValidFileName(title, options.disallowedChars) +
-        ".md";
+      const filename = path;
       const code = `downloadMarkdown("${filename}","${base64EncodeUnicode(
         markdown
       )}");`;
@@ -604,12 +599,14 @@ async function notify(message, sender) {
 
     // format the mdClipsFolder
     const mdClipsFolder = await formatMdClipsFolder(article);
+    const path = posix.join(mdClipsFolder, article.title + ".md");
     const displayMessage = {
       type: "display.md",
       markdown: markdown,
       article: article,
       imageList: imageList,
       mdClipsFolder: mdClipsFolder,
+      path: path,
       options: options,
     };
     // check options
@@ -629,7 +626,7 @@ async function notify(message, sender) {
   else if (message.type == "download") {
     downloadMarkdown(
       message.markdown,
-      message.title,
+      message.path,
       message.tab.id,
       message.imageList,
       message.mdClipsFolder
@@ -910,8 +907,10 @@ async function downloadMarkdownFromContext(info, tab) {
   const title = await formatTitle(article);
   const { markdown, mageList } = await convertArticleToMarkdown(article);
   // format the mdClipsFolder
+
   const mdClipsFolder = await formatMdClipsFolder(article);
-  await downloadMarkdown(markdown, title, tab.id, imageList, mdClipsFolder);
+  const path = mdClipsFolder + title + ".md";
+  await downloadMarkdown(markdown, path, tab.id, imageList, mdClipsFolder);
 }
 
 // function to copy a tab url as a markdown link
