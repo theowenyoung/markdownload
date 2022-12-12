@@ -672,7 +672,9 @@ browser.commands.onCommand.addListener(function (command) {
 // click handler for the context menus
 browser.contextMenus.onClicked.addListener(function (info, tab) {
   // one of the copy to clipboard commands
-  if (info.menuItemId.startsWith("copy-markdown")) {
+  if (info.menuItemId === "open-options") {
+    browser.runtime.openOptionsPage();
+  } else if (info.menuItemId.startsWith("copy-markdown")) {
     copyMarkdownFromContext(info, tab);
   } else if (
     info.menuItemId == "download-markdown-alltabs" ||
@@ -778,10 +780,15 @@ async function getArticleFromDom(domString, lang) {
 
   // simplify the dom into an article
   const article = new Readability(dom).parse();
+  console.log("article", article);
   // get the base uri from the dom and attach it as important article info
   article.baseURI = dom.baseURI;
   // also grab the page title
   article.pageTitle = dom.title;
+  // add page title1, page title2, split with --- for dual title translate
+  const titles = dom.title.split("---");
+  article.pageTitle1 = titles[0];
+  article.pageTitle2 = titles[1] || titles[0];
   // try to get pageTitleWithoutSiteName
   if (lang) {
     article.lang = lang;

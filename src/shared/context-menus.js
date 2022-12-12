@@ -9,6 +9,14 @@ async function createMenus() {
     try {
       browser.contextMenus.create(
         {
+          id: "open-options",
+          title: "Open Options",
+          contexts: ["browser_action", "page_action"],
+        },
+        () => {}
+      );
+      browser.contextMenus.create(
+        {
           id: "copy-custom-copied-text",
           title: "Copy Custom Copied Text",
           contexts: ["all"],
