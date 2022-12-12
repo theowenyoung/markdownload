@@ -12,6 +12,9 @@ createMenus();
 
 TurndownService.prototype.defaultEscape = TurndownService.prototype.escape;
 
+function escapeDoubleQuotes(str) {
+  return str.replace(/"/g, '\\"');
+}
 function _slug(string) {
   // replace . to - to avoid file extension
   const x = string.replace(/\./g, "-");
@@ -96,12 +99,19 @@ function turndown(content, options, article) {
         var alt = cleanAttribute(node.getAttribute("alt"));
         var src = node.getAttribute("src") || "";
         var title = cleanAttribute(node.getAttribute("title"));
-        var titlePart = title ? ' "' + title + '"' : "";
+        var titlePart = title
+          ? ' "' + escapeDoubleQuotes(title.trim()) + '"'
+          : "";
         if (options.imageRefStyle == "referenced") {
           var id = this.references.length + 1;
           this.references.push("[fig" + id + "]: " + src + titlePart);
-          return "![" + alt + "][fig" + id + "]";
-        } else return src ? "![" + alt + "]" + "(" + src + titlePart + ")" : "";
+          return "![" + alt.trim() + "][fig" + id + "]";
+        } else {
+          const result = src
+            ? "![" + alt.trim() + "]" + "(" + src + titlePart + ")"
+            : "";
+          return result;
+        }
       }
     },
     references: [],

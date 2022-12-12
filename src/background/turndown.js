@@ -1,5 +1,5 @@
 var TurndownService = (function () {
-  'use strict';
+  "use strict";
 
   function extend(destination) {
     for (var i = 1; i < arguments.length; i++) {
@@ -8,192 +8,261 @@ var TurndownService = (function () {
         if (source.hasOwnProperty(key)) destination[key] = source[key];
       }
     }
-    return destination
+    return destination;
+  }
+  function escapeDoubleQuotes(str) {
+    return str.replace(/"/g, '\\"');
   }
 
   function repeat(character, count) {
-    return Array(count + 1).join(character)
+    return Array(count + 1).join(character);
   }
 
   function trimLeadingNewlines(string) {
-    return string.replace(/^\n*/, '')
+    return string.replace(/^\n*/, "");
   }
 
   function trimTrailingNewlines(string) {
     // avoid match-at-end regexp bottleneck, see #370
     var indexEnd = string.length;
-    while (indexEnd > 0 && string[indexEnd - 1] === '\n') indexEnd--;
-    return string.substring(0, indexEnd)
+    while (indexEnd > 0 && string[indexEnd - 1] === "\n") indexEnd--;
+    return string.substring(0, indexEnd);
   }
 
   var blockElements = [
-    'ADDRESS', 'ARTICLE', 'ASIDE', 'AUDIO', 'BLOCKQUOTE', 'BODY', 'CANVAS',
-    'CENTER', 'DD', 'DIR', 'DIV', 'DL', 'DT', 'FIELDSET', 'FIGCAPTION', 'FIGURE',
-    'FOOTER', 'FORM', 'FRAMESET', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER',
-    'HGROUP', 'HR', 'HTML', 'ISINDEX', 'LI', 'MAIN', 'MENU', 'NAV', 'NOFRAMES',
-    'NOSCRIPT', 'OL', 'OUTPUT', 'P', 'PRE', 'SECTION', 'TABLE', 'TBODY', 'TD',
-    'TFOOT', 'TH', 'THEAD', 'TR', 'UL'
+    "ADDRESS",
+    "ARTICLE",
+    "ASIDE",
+    "AUDIO",
+    "BLOCKQUOTE",
+    "BODY",
+    "CANVAS",
+    "CENTER",
+    "DD",
+    "DIR",
+    "DIV",
+    "DL",
+    "DT",
+    "FIELDSET",
+    "FIGCAPTION",
+    "FIGURE",
+    "FOOTER",
+    "FORM",
+    "FRAMESET",
+    "H1",
+    "H2",
+    "H3",
+    "H4",
+    "H5",
+    "H6",
+    "HEADER",
+    "HGROUP",
+    "HR",
+    "HTML",
+    "ISINDEX",
+    "LI",
+    "MAIN",
+    "MENU",
+    "NAV",
+    "NOFRAMES",
+    "NOSCRIPT",
+    "OL",
+    "OUTPUT",
+    "P",
+    "PRE",
+    "SECTION",
+    "TABLE",
+    "TBODY",
+    "TD",
+    "TFOOT",
+    "TH",
+    "THEAD",
+    "TR",
+    "UL",
   ];
 
   function isBlock(node) {
-    return is(node, blockElements)
+    return is(node, blockElements);
   }
 
   var voidElements = [
-    'AREA', 'BASE', 'BR', 'COL', 'COMMAND', 'EMBED', 'HR', 'IMG', 'INPUT',
-    'KEYGEN', 'LINK', 'META', 'PARAM', 'SOURCE', 'TRACK', 'WBR'
+    "AREA",
+    "BASE",
+    "BR",
+    "COL",
+    "COMMAND",
+    "EMBED",
+    "HR",
+    "IMG",
+    "INPUT",
+    "KEYGEN",
+    "LINK",
+    "META",
+    "PARAM",
+    "SOURCE",
+    "TRACK",
+    "WBR",
   ];
 
   function isVoid(node) {
-    return is(node, voidElements)
+    return is(node, voidElements);
   }
 
   function hasVoid(node) {
-    return has(node, voidElements)
+    return has(node, voidElements);
   }
 
   var meaningfulWhenBlankElements = [
-    'A', 'TABLE', 'THEAD', 'TBODY', 'TFOOT', 'TH', 'TD', 'IFRAME', 'SCRIPT',
-    'AUDIO', 'VIDEO'
+    "A",
+    "TABLE",
+    "THEAD",
+    "TBODY",
+    "TFOOT",
+    "TH",
+    "TD",
+    "IFRAME",
+    "SCRIPT",
+    "AUDIO",
+    "VIDEO",
   ];
 
   function isMeaningfulWhenBlank(node) {
-    return is(node, meaningfulWhenBlankElements)
+    return is(node, meaningfulWhenBlankElements);
   }
 
   function hasMeaningfulWhenBlank(node) {
-    return has(node, meaningfulWhenBlankElements)
+    return has(node, meaningfulWhenBlankElements);
   }
 
   function is(node, tagNames) {
-    return tagNames.indexOf(node.nodeName) >= 0
+    return tagNames.indexOf(node.nodeName) >= 0;
   }
 
   function has(node, tagNames) {
     return (
       node.getElementsByTagName &&
       tagNames.some(function (tagName) {
-        return node.getElementsByTagName(tagName).length
+        return node.getElementsByTagName(tagName).length;
       })
-    )
+    );
   }
 
   var rules = {};
 
   rules.paragraph = {
-    filter: 'p',
+    filter: "p",
 
     replacement: function (content) {
-      return '\n\n' + content + '\n\n'
-    }
+      return "\n\n" + content + "\n\n";
+    },
   };
 
   rules.lineBreak = {
-    filter: 'br',
+    filter: "br",
 
     replacement: function (content, node, options) {
-      return options.br + '\n'
-    }
+      return options.br + "\n";
+    },
   };
 
   rules.heading = {
-    filter: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'],
+    filter: ["h1", "h2", "h3", "h4", "h5", "h6"],
 
     replacement: function (content, node, options) {
       var hLevel = Number(node.nodeName.charAt(1));
 
-      if (options.headingStyle === 'setext' && hLevel < 3) {
-        var underline = repeat((hLevel === 1 ? '=' : '-'), content.length);
-        return (
-          '\n\n' + content + '\n' + underline + '\n\n'
-        )
+      if (options.headingStyle === "setext" && hLevel < 3) {
+        var underline = repeat(hLevel === 1 ? "=" : "-", content.length);
+        return "\n\n" + content + "\n" + underline + "\n\n";
       } else {
-        return '\n\n' + repeat('#', hLevel) + ' ' + content + '\n\n'
+        return "\n\n" + repeat("#", hLevel) + " " + content + "\n\n";
       }
-    }
+    },
   };
 
   rules.blockquote = {
-    filter: 'blockquote',
+    filter: "blockquote",
 
     replacement: function (content) {
-      content = content.replace(/^\n+|\n+$/g, '');
-      content = content.replace(/^/gm, '> ');
-      return '\n\n' + content + '\n\n'
-    }
+      content = content.replace(/^\n+|\n+$/g, "");
+      content = content.replace(/^/gm, "> ");
+      return "\n\n" + content + "\n\n";
+    },
   };
 
   rules.list = {
-    filter: ['ul', 'ol'],
+    filter: ["ul", "ol"],
 
     replacement: function (content, node) {
       var parent = node.parentNode;
-      if (parent.nodeName === 'LI' && parent.lastElementChild === node) {
-        return '\n' + content
+      if (parent.nodeName === "LI" && parent.lastElementChild === node) {
+        return "\n" + content;
       } else {
-        return '\n\n' + content + '\n\n'
+        return "\n\n" + content + "\n\n";
       }
-    }
+    },
   };
 
   rules.listItem = {
-    filter: 'li',
+    filter: "li",
 
     replacement: function (content, node, options) {
       content = content
-        .replace(/^\n+/, '') // remove leading newlines
-        .replace(/\n+$/, '\n') // replace trailing newlines with just a single one
-        .replace(/\n/gm, '\n    '); // indent
-      var prefix = options.bulletListMarker + '   ';
+        .replace(/^\n+/, "") // remove leading newlines
+        .replace(/\n+$/, "\n") // replace trailing newlines with just a single one
+        .replace(/\n/gm, "\n    "); // indent
+      var prefix = options.bulletListMarker + "   ";
       var parent = node.parentNode;
-      if (parent.nodeName === 'OL') {
-        var start = parent.getAttribute('start');
+      if (parent.nodeName === "OL") {
+        var start = parent.getAttribute("start");
         var index = Array.prototype.indexOf.call(parent.children, node);
-        prefix = (start ? Number(start) + index : index + 1) + '.  ';
+        prefix = (start ? Number(start) + index : index + 1) + ".  ";
       }
       return (
-        prefix + content + (node.nextSibling && !/\n$/.test(content) ? '\n' : '')
-      )
-    }
+        prefix +
+        content +
+        (node.nextSibling && !/\n$/.test(content) ? "\n" : "")
+      );
+    },
   };
 
   rules.indentedCodeBlock = {
     filter: function (node, options) {
       return (
-        options.codeBlockStyle === 'indented' &&
-        node.nodeName === 'PRE' &&
+        options.codeBlockStyle === "indented" &&
+        node.nodeName === "PRE" &&
         node.firstChild &&
-        node.firstChild.nodeName === 'CODE'
-      )
+        node.firstChild.nodeName === "CODE"
+      );
     },
 
     replacement: function (content, node, options) {
       return (
-        '\n\n    ' +
-        node.firstChild.textContent.replace(/\n/g, '\n    ') +
-        '\n\n'
-      )
-    }
+        "\n\n    " +
+        node.firstChild.textContent.replace(/\n/g, "\n    ") +
+        "\n\n"
+      );
+    },
   };
 
   rules.fencedCodeBlock = {
     filter: function (node, options) {
       return (
-        options.codeBlockStyle === 'fenced' &&
-        node.nodeName === 'PRE' &&
+        options.codeBlockStyle === "fenced" &&
+        node.nodeName === "PRE" &&
         node.firstChild &&
-        node.firstChild.nodeName === 'CODE'
-      )
+        node.firstChild.nodeName === "CODE"
+      );
     },
 
     replacement: function (content, node, options) {
-      var className = node.firstChild.getAttribute('class') || '';
-      var language = (className.match(/language-(\S+)/) || [null, ''])[1];
+      var className = node.firstChild.getAttribute("class") || "";
+      var language = (className.match(/language-(\S+)/) || [null, ""])[1];
       var code = node.firstChild.textContent;
 
       var fenceChar = options.fence.charAt(0);
       var fenceSize = 3;
-      var fenceInCodeRegex = new RegExp('^' + fenceChar + '{3,}', 'gm');
+      var fenceInCodeRegex = new RegExp("^" + fenceChar + "{3,}", "gm");
 
       var match;
       while ((match = fenceInCodeRegex.exec(code))) {
@@ -205,138 +274,146 @@ var TurndownService = (function () {
       var fence = repeat(fenceChar, fenceSize);
 
       return (
-        '\n\n' + fence + language + '\n' +
-        code.replace(/\n$/, '') +
-        '\n' + fence + '\n\n'
-      )
-    }
+        "\n\n" +
+        fence +
+        language +
+        "\n" +
+        code.replace(/\n$/, "") +
+        "\n" +
+        fence +
+        "\n\n"
+      );
+    },
   };
 
   rules.horizontalRule = {
-    filter: 'hr',
+    filter: "hr",
 
     replacement: function (content, node, options) {
-      return '\n\n' + options.hr + '\n\n'
-    }
+      return "\n\n" + options.hr + "\n\n";
+    },
   };
 
   rules.inlineLink = {
     filter: function (node, options) {
       return (
-        options.linkStyle === 'inlined' &&
-        node.nodeName === 'A' &&
-        node.getAttribute('href')
-      )
+        options.linkStyle === "inlined" &&
+        node.nodeName === "A" &&
+        node.getAttribute("href")
+      );
     },
 
     replacement: function (content, node) {
-      var href = node.getAttribute('href');
-      var title = cleanAttribute(node.getAttribute('title'));
-      if (title) title = ' "' + title + '"';
-      return '[' + content + '](' + href + title + ')'
-    }
+      content = content || "";
+      var href = node.getAttribute("href");
+      var title = cleanAttribute(node.getAttribute("title"));
+      if (title) title = ' "' + escapeDoubleQuotes(title.trim()) + '"';
+      return "[" + content.trim() + "](" + href + title + ")";
+    },
   };
 
   rules.referenceLink = {
     filter: function (node, options) {
       return (
-        options.linkStyle === 'referenced' &&
-        node.nodeName === 'A' &&
-        node.getAttribute('href')
-      )
+        options.linkStyle === "referenced" &&
+        node.nodeName === "A" &&
+        node.getAttribute("href")
+      );
     },
 
     replacement: function (content, node, options) {
-      var href = node.getAttribute('href');
-      var title = cleanAttribute(node.getAttribute('title'));
+      var href = node.getAttribute("href");
+      var title = cleanAttribute(node.getAttribute("title"));
       if (title) title = ' "' + title + '"';
       var replacement;
       var reference;
 
       switch (options.linkReferenceStyle) {
-        case 'collapsed':
-          replacement = '[' + content + '][]';
-          reference = '[' + content + ']: ' + href + title;
-          break
-        case 'shortcut':
-          replacement = '[' + content + ']';
-          reference = '[' + content + ']: ' + href + title;
-          break
+        case "collapsed":
+          replacement = "[" + content + "][]";
+          reference = "[" + content + "]: " + href + title;
+          break;
+        case "shortcut":
+          replacement = "[" + content + "]";
+          reference = "[" + content + "]: " + href + title;
+          break;
         default:
           var id = this.references.length + 1;
-          replacement = '[' + content + '][' + id + ']';
-          reference = '[' + id + ']: ' + href + title;
+          replacement = "[" + content + "][" + id + "]";
+          reference = "[" + id + "]: " + href + title;
       }
 
       this.references.push(reference);
-      return replacement
+      return replacement;
     },
 
     references: [],
 
     append: function (options) {
-      var references = '';
+      var references = "";
       if (this.references.length) {
-        references = '\n\n' + this.references.join('\n') + '\n\n';
+        references = "\n\n" + this.references.join("\n") + "\n\n";
         this.references = []; // Reset references
       }
-      return references
-    }
+      return references;
+    },
   };
 
   rules.emphasis = {
-    filter: ['em', 'i'],
+    filter: ["em", "i"],
 
     replacement: function (content, node, options) {
-      if (!content.trim()) return ''
-      return options.emDelimiter + content + options.emDelimiter
-    }
+      if (!content.trim()) return "";
+      return options.emDelimiter + content + options.emDelimiter;
+    },
   };
 
   rules.strong = {
-    filter: ['strong', 'b'],
+    filter: ["strong", "b"],
 
     replacement: function (content, node, options) {
-      if (!content.trim()) return ''
-      return options.strongDelimiter + content + options.strongDelimiter
-    }
+      if (!content.trim()) return "";
+      return options.strongDelimiter + content + options.strongDelimiter;
+    },
   };
 
   rules.code = {
     filter: function (node) {
       var hasSiblings = node.previousSibling || node.nextSibling;
-      var isCodeBlock = node.parentNode.nodeName === 'PRE' && !hasSiblings;
+      var isCodeBlock = node.parentNode.nodeName === "PRE" && !hasSiblings;
 
-      return node.nodeName === 'CODE' && !isCodeBlock
+      return node.nodeName === "CODE" && !isCodeBlock;
     },
 
     replacement: function (content) {
-      if (!content) return ''
-      content = content.replace(/\r?\n|\r/g, ' ');
+      if (!content) return "";
+      content = content.replace(/\r?\n|\r/g, " ");
 
-      var extraSpace = /^`|^ .*?[^ ].* $|`$/.test(content) ? ' ' : '';
-      var delimiter = '`';
+      var extraSpace = /^`|^ .*?[^ ].* $|`$/.test(content) ? " " : "";
+      var delimiter = "`";
       var matches = content.match(/`+/gm) || [];
-      while (matches.indexOf(delimiter) !== -1) delimiter = delimiter + '`';
+      while (matches.indexOf(delimiter) !== -1) delimiter = delimiter + "`";
 
-      return delimiter + extraSpace + content + extraSpace + delimiter
-    }
+      return delimiter + extraSpace + content + extraSpace + delimiter;
+    },
   };
 
   rules.image = {
-    filter: 'img',
+    filter: "img",
 
     replacement: function (content, node) {
-      var alt = cleanAttribute(node.getAttribute('alt'));
-      var src = node.getAttribute('src') || '';
-      var title = cleanAttribute(node.getAttribute('title'));
-      var titlePart = title ? ' "' + title + '"' : '';
-      return src ? '![' + alt + ']' + '(' + src + titlePart + ')' : ''
-    }
+      var alt = cleanAttribute(node.getAttribute("alt")) || "";
+      var src = node.getAttribute("src") || "";
+      var title = cleanAttribute(node.getAttribute("title"));
+      var titlePart = title
+        ? ' "' + escapeDoubleQuotes(title.trim()) + '"'
+        : "";
+      return src ? "![" + alt.trim() + "]" + "(" + src + titlePart + ")" : "";
+    },
   };
 
   function cleanAttribute(attribute) {
-    return attribute ? attribute.replace(/(\n+\s*)+/g, '\n') : ''
+    return attribute ? attribute.replace(/(\n+\s*)+/g, "\n") : "";
   }
 
   /**
@@ -349,13 +426,13 @@ var TurndownService = (function () {
     this._remove = [];
 
     this.blankRule = {
-      replacement: options.blankReplacement
+      replacement: options.blankReplacement,
     };
 
     this.keepReplacement = options.keepReplacement;
 
     this.defaultRule = {
-      replacement: options.defaultReplacement
+      replacement: options.defaultReplacement,
     };
 
     this.array = [];
@@ -370,7 +447,7 @@ var TurndownService = (function () {
     keep: function (filter) {
       this._keep.unshift({
         filter: filter,
-        replacement: this.keepReplacement
+        replacement: this.keepReplacement,
       });
     },
 
@@ -378,45 +455,45 @@ var TurndownService = (function () {
       this._remove.unshift({
         filter: filter,
         replacement: function () {
-          return ''
-        }
+          return "";
+        },
       });
     },
 
     forNode: function (node) {
-      if (node.isBlank) return this.blankRule
+      if (node.isBlank) return this.blankRule;
       var rule;
 
-      if ((rule = findRule(this.array, node, this.options))) return rule
-      if ((rule = findRule(this._keep, node, this.options))) return rule
-      if ((rule = findRule(this._remove, node, this.options))) return rule
+      if ((rule = findRule(this.array, node, this.options))) return rule;
+      if ((rule = findRule(this._keep, node, this.options))) return rule;
+      if ((rule = findRule(this._remove, node, this.options))) return rule;
 
-      return this.defaultRule
+      return this.defaultRule;
     },
 
     forEach: function (fn) {
       for (var i = 0; i < this.array.length; i++) fn(this.array[i], i);
-    }
+    },
   };
 
   function findRule(rules, node, options) {
     for (var i = 0; i < rules.length; i++) {
       var rule = rules[i];
-      if (filterValue(rule, node, options)) return rule
+      if (filterValue(rule, node, options)) return rule;
     }
-    return void 0
+    return void 0;
   }
 
   function filterValue(rule, node, options) {
     var filter = rule.filter;
-    if (typeof filter === 'string') {
-      if (filter === node.nodeName.toLowerCase()) return true
+    if (typeof filter === "string") {
+      if (filter === node.nodeName.toLowerCase()) return true;
     } else if (Array.isArray(filter)) {
-      if (filter.indexOf(node.nodeName.toLowerCase()) > -1) return true
-    } else if (typeof filter === 'function') {
-      if (filter.call(rule, node, options)) return true
+      if (filter.indexOf(node.nodeName.toLowerCase()) > -1) return true;
+    } else if (typeof filter === "function") {
+      if (filter.call(rule, node, options)) return true;
     } else {
-      throw new TypeError('`filter` needs to be a string, array, or function')
+      throw new TypeError("`filter` needs to be a string, array, or function");
     }
   }
 
@@ -456,11 +533,13 @@ var TurndownService = (function () {
     var element = options.element;
     var isBlock = options.isBlock;
     var isVoid = options.isVoid;
-    var isPre = options.isPre || function (node) {
-      return node.nodeName === 'PRE'
-    };
+    var isPre =
+      options.isPre ||
+      function (node) {
+        return node.nodeName === "PRE";
+      };
 
-    if (!element.firstChild || isPre(element)) return
+    if (!element.firstChild || isPre(element)) return;
 
     var prevText = null;
     var keepLeadingWs = false;
@@ -469,27 +548,32 @@ var TurndownService = (function () {
     var node = next(prev, element, isPre);
 
     while (node !== element) {
-      if (node.nodeType === 3 || node.nodeType === 4) { // Node.TEXT_NODE or Node.CDATA_SECTION_NODE
-        var text = node.data.replace(/[ \r\n\t]+/g, ' ');
+      if (node.nodeType === 3 || node.nodeType === 4) {
+        // Node.TEXT_NODE or Node.CDATA_SECTION_NODE
+        var text = node.data.replace(/[ \r\n\t]+/g, " ");
 
-        if ((!prevText || / $/.test(prevText.data)) &&
-          !keepLeadingWs && text[0] === ' ') {
+        if (
+          (!prevText || / $/.test(prevText.data)) &&
+          !keepLeadingWs &&
+          text[0] === " "
+        ) {
           text = text.substr(1);
         }
 
         // `text` might be empty at this point.
         if (!text) {
           node = remove(node);
-          continue
+          continue;
         }
 
         node.data = text;
 
         prevText = node;
-      } else if (node.nodeType === 1) { // Node.ELEMENT_NODE
-        if (isBlock(node) || node.nodeName === 'BR') {
+      } else if (node.nodeType === 1) {
+        // Node.ELEMENT_NODE
+        if (isBlock(node) || node.nodeName === "BR") {
           if (prevText) {
-            prevText.data = prevText.data.replace(/ $/, '');
+            prevText.data = prevText.data.replace(/ $/, "");
           }
 
           prevText = null;
@@ -504,7 +588,7 @@ var TurndownService = (function () {
         }
       } else {
         node = remove(node);
-        continue
+        continue;
       }
 
       var nextNode = next(prev, node, isPre);
@@ -513,7 +597,7 @@ var TurndownService = (function () {
     }
 
     if (prevText) {
-      prevText.data = prevText.data.replace(/ $/, '');
+      prevText.data = prevText.data.replace(/ $/, "");
       if (!prevText.data) {
         remove(prevText);
       }
@@ -532,7 +616,7 @@ var TurndownService = (function () {
 
     node.parentNode.removeChild(node);
 
-    return next
+    return next;
   }
 
   /**
@@ -546,17 +630,17 @@ var TurndownService = (function () {
    */
   function next(prev, current, isPre) {
     if ((prev && prev.parentNode === current) || isPre(current)) {
-      return current.nextSibling || current.parentNode
+      return current.nextSibling || current.parentNode;
     }
 
-    return current.firstChild || current.nextSibling || current.parentNode
+    return current.firstChild || current.nextSibling || current.parentNode;
   }
 
   /*
    * Set up window for Node.js
    */
 
-  var root = (typeof window !== 'undefined' ? window : {});
+  var root = typeof window !== "undefined" ? window : {};
 
   /*
    * Parsing HTML strings
@@ -570,63 +654,63 @@ var TurndownService = (function () {
     // Firefox/Opera/IE throw errors on unsupported types
     try {
       // WebKit returns null on unsupported types
-      if (new Parser().parseFromString('', 'text/html')) {
+      if (new Parser().parseFromString("", "text/html")) {
         canParse = true;
       }
-    } catch (e) { }
+    } catch (e) {}
 
-    return canParse
+    return canParse;
   }
 
   function createHTMLParser() {
-    var Parser = function () { };
+    var Parser = function () {};
 
     {
       if (shouldUseActiveX()) {
         Parser.prototype.parseFromString = function (string) {
-          var doc = new window.ActiveXObject('htmlfile');
-          doc.designMode = 'on'; // disable on-page scripts
+          var doc = new window.ActiveXObject("htmlfile");
+          doc.designMode = "on"; // disable on-page scripts
           doc.open();
           doc.write(string);
           doc.close();
-          return doc
+          return doc;
         };
       } else {
         Parser.prototype.parseFromString = function (string) {
-          var doc = document.implementation.createHTMLDocument('');
+          var doc = document.implementation.createHTMLDocument("");
           doc.open();
           doc.write(string);
           doc.close();
-          return doc
+          return doc;
         };
       }
     }
-    return Parser
+    return Parser;
   }
 
   function shouldUseActiveX() {
     var useActiveX = false;
     try {
-      document.implementation.createHTMLDocument('').open();
+      document.implementation.createHTMLDocument("").open();
     } catch (e) {
       if (window.ActiveXObject) useActiveX = true;
     }
-    return useActiveX
+    return useActiveX;
   }
 
   var HTMLParser = canParseHTMLNatively() ? root.DOMParser : createHTMLParser();
 
   function RootNode(input, options) {
     var root;
-    if (typeof input === 'string') {
+    if (typeof input === "string") {
       var doc = htmlParser().parseFromString(
         // DOM parsers arrange elements in the <head> and <body>.
         // Wrapping in a custom element ensures elements are reliably arranged in
         // a single element.
-        '<x-turndown id="turndown-root">' + input + '</x-turndown>',
-        'text/html'
+        '<x-turndown id="turndown-root">' + input + "</x-turndown>",
+        "text/html"
       );
-      root = doc.getElementById('turndown-root');
+      root = doc.getElementById("turndown-root");
     } else {
       root = input.cloneNode(true);
     }
@@ -634,28 +718,28 @@ var TurndownService = (function () {
       element: root,
       isBlock: isBlock,
       isVoid: isVoid,
-      isPre: options.preformattedCode ? isPreOrCode : null
+      isPre: options.preformattedCode ? isPreOrCode : null,
     });
 
-    return root
+    return root;
   }
 
   var _htmlParser;
   function htmlParser() {
     _htmlParser = _htmlParser || new HTMLParser();
-    return _htmlParser
+    return _htmlParser;
   }
 
   function isPreOrCode(node) {
-    return node.nodeName === 'PRE' || node.nodeName === 'CODE'
+    return node.nodeName === "PRE" || node.nodeName === "CODE";
   }
 
   function Node(node, options) {
     node.isBlock = isBlock(node);
-    node.isCode = node.nodeName === 'CODE' || node.parentNode.isCode;
+    node.isCode = node.nodeName === "CODE" || node.parentNode.isCode;
     node.isBlank = isBlank(node);
     node.flankingWhitespace = flankingWhitespace(node, options);
-    return node
+    return node;
   }
 
   function isBlank(node) {
@@ -665,27 +749,27 @@ var TurndownService = (function () {
       /^\s*$/i.test(node.textContent) &&
       !hasVoid(node) &&
       !hasMeaningfulWhenBlank(node)
-    )
+    );
   }
 
   function flankingWhitespace(node, options) {
     if (node.isBlock || (options.preformattedCode && node.isCode)) {
-      return { leading: '', trailing: '' }
+      return { leading: "", trailing: "" };
     }
 
     var edges = edgeWhitespace(node.textContent);
 
     // abandon leading ASCII WS if left-flanked by ASCII WS
-    if (edges.leadingAscii && isFlankedByWhitespace('left', node, options)) {
+    if (edges.leadingAscii && isFlankedByWhitespace("left", node, options)) {
       edges.leading = edges.leadingNonAscii;
     }
 
     // abandon trailing ASCII WS if right-flanked by ASCII WS
-    if (edges.trailingAscii && isFlankedByWhitespace('right', node, options)) {
+    if (edges.trailingAscii && isFlankedByWhitespace("right", node, options)) {
       edges.trailing = edges.trailingNonAscii;
     }
 
-    return { leading: edges.leading, trailing: edges.trailing }
+    return { leading: edges.leading, trailing: edges.trailing };
   }
 
   function edgeWhitespace(string) {
@@ -696,8 +780,8 @@ var TurndownService = (function () {
       leadingNonAscii: m[3],
       trailing: m[4], // empty for whitespace-only strings
       trailingNonAscii: m[5],
-      trailingAscii: m[6]
-    }
+      trailingAscii: m[6],
+    };
   }
 
   function isFlankedByWhitespace(side, node, options) {
@@ -705,7 +789,7 @@ var TurndownService = (function () {
     var regExp;
     var isFlanked;
 
-    if (side === 'left') {
+    if (side === "left") {
       sibling = node.previousSibling;
       regExp = / $/;
     } else {
@@ -716,57 +800,57 @@ var TurndownService = (function () {
     if (sibling) {
       if (sibling.nodeType === 3) {
         isFlanked = regExp.test(sibling.nodeValue);
-      } else if (options.preformattedCode && sibling.nodeName === 'CODE') {
+      } else if (options.preformattedCode && sibling.nodeName === "CODE") {
         isFlanked = false;
       } else if (sibling.nodeType === 1 && !isBlock(sibling)) {
         isFlanked = regExp.test(sibling.textContent);
       }
     }
-    return isFlanked
+    return isFlanked;
   }
 
   var reduce = Array.prototype.reduce;
   var escapes = [
-    [/\\/g, '\\\\'],
-    [/\*/g, '\\*'],
-    [/^-/g, '\\-'],
-    [/^\+ /g, '\\+ '],
-    [/^(=+)/g, '\\$1'],
-    [/^(#{1,6}) /g, '\\$1 '],
-    [/`/g, '\\`'],
-    [/^~~~/g, '\\~~~'],
-    [/\[/g, '\\['],
-    [/\]/g, '\\]'],
-    [/^>/g, '\\>'],
-    [/_/g, '\\_'],
-    [/^(\d+)\. /g, '$1\\. ']
+    [/\\/g, "\\\\"],
+    [/\*/g, "\\*"],
+    [/^-/g, "\\-"],
+    [/^\+ /g, "\\+ "],
+    [/^(=+)/g, "\\$1"],
+    [/^(#{1,6}) /g, "\\$1 "],
+    [/`/g, "\\`"],
+    [/^~~~/g, "\\~~~"],
+    [/\[/g, "\\["],
+    [/\]/g, "\\]"],
+    [/^>/g, "\\>"],
+    [/_/g, "\\_"],
+    [/^(\d+)\. /g, "$1\\. "],
   ];
 
   function TurndownService(options) {
-    if (!(this instanceof TurndownService)) return new TurndownService(options)
+    if (!(this instanceof TurndownService)) return new TurndownService(options);
 
     var defaults = {
       rules: rules,
-      headingStyle: 'setext',
-      hr: '* * *',
-      bulletListMarker: '*',
-      codeBlockStyle: 'indented',
-      fence: '```',
-      emDelimiter: '_',
-      strongDelimiter: '**',
-      linkStyle: 'inlined',
-      linkReferenceStyle: 'full',
-      br: '  ',
+      headingStyle: "setext",
+      hr: "* * *",
+      bulletListMarker: "*",
+      codeBlockStyle: "indented",
+      fence: "```",
+      emDelimiter: "_",
+      strongDelimiter: "**",
+      linkStyle: "inlined",
+      linkReferenceStyle: "full",
+      br: "  ",
       preformattedCode: false,
       blankReplacement: function (content, node) {
-        return node.isBlock ? '\n\n' : ''
+        return node.isBlock ? "\n\n" : "";
       },
       keepReplacement: function (content, node) {
-        return node.isBlock ? '\n\n' + node.outerHTML + '\n\n' : node.outerHTML
+        return node.isBlock ? "\n\n" + node.outerHTML + "\n\n" : node.outerHTML;
       },
       defaultReplacement: function (content, node) {
-        return node.isBlock ? '\n\n' + content + '\n\n' : content
-      }
+        return node.isBlock ? "\n\n" + content + "\n\n" : content;
+      },
     };
     this.options = extend({}, defaults, options);
     this.rules = new Rules(this.options);
@@ -784,14 +868,14 @@ var TurndownService = (function () {
     turndown: function (input) {
       if (!canConvert(input)) {
         throw new TypeError(
-          input + ' is not a string, or an element/document/fragment node.'
-        )
+          input + " is not a string, or an element/document/fragment node."
+        );
       }
 
-      if (input === '') return ''
+      if (input === "") return "";
 
       var output = process.call(this, new RootNode(input, this.options));
-      return postProcess.call(this, output)
+      return postProcess.call(this, output);
     },
 
     /**
@@ -805,12 +889,14 @@ var TurndownService = (function () {
     use: function (plugin) {
       if (Array.isArray(plugin)) {
         for (var i = 0; i < plugin.length; i++) this.use(plugin[i]);
-      } else if (typeof plugin === 'function') {
+      } else if (typeof plugin === "function") {
         plugin(this);
       } else {
-        throw new TypeError('plugin must be a Function or an Array of Functions')
+        throw new TypeError(
+          "plugin must be a Function or an Array of Functions"
+        );
       }
-      return this
+      return this;
     },
 
     /**
@@ -824,7 +910,7 @@ var TurndownService = (function () {
 
     addRule: function (key, rule) {
       this.rules.add(key, rule);
-      return this
+      return this;
     },
 
     /**
@@ -837,7 +923,7 @@ var TurndownService = (function () {
 
     keep: function (filter) {
       this.rules.keep(filter);
-      return this
+      return this;
     },
 
     /**
@@ -850,7 +936,7 @@ var TurndownService = (function () {
 
     remove: function (filter) {
       this.rules.remove(filter);
-      return this
+      return this;
     },
 
     /**
@@ -863,9 +949,9 @@ var TurndownService = (function () {
 
     escape: function (string) {
       return escapes.reduce(function (accumulator, escape) {
-        return accumulator.replace(escape[0], escape[1])
-      }, string)
-    }
+        return accumulator.replace(escape[0], escape[1]);
+      }, string);
+    },
   };
 
   /**
@@ -878,18 +964,24 @@ var TurndownService = (function () {
 
   function process(parentNode) {
     var self = this;
-    return reduce.call(parentNode.childNodes, function (output, node) {
-      node = new Node(node, self.options);
+    return reduce.call(
+      parentNode.childNodes,
+      function (output, node) {
+        node = new Node(node, self.options);
 
-      var replacement = '';
-      if (node.nodeType === 3) {
-        replacement = node.isCode ? node.nodeValue : self.escape(node.nodeValue);
-      } else if (node.nodeType === 1) {
-        replacement = replacementForNode.call(self, node);
-      }
+        var replacement = "";
+        if (node.nodeType === 3) {
+          replacement = node.isCode
+            ? node.nodeValue
+            : self.escape(node.nodeValue);
+        } else if (node.nodeType === 1) {
+          replacement = replacementForNode.call(self, node);
+        }
 
-      return join(output, replacement)
-    }, '')
+        return join(output, replacement);
+      },
+      ""
+    );
   }
 
   /**
@@ -903,12 +995,12 @@ var TurndownService = (function () {
   function postProcess(output) {
     var self = this;
     this.rules.forEach(function (rule) {
-      if (typeof rule.append === 'function') {
+      if (typeof rule.append === "function") {
         output = join(output, rule.append(self.options));
       }
     });
 
-    return output.replace(/^[\t\r\n]+/, '').replace(/[\t\r\n\s]+$/, '')
+    return output.replace(/^[\t\r\n]+/, "").replace(/[\t\r\n\s]+$/, "");
   }
 
   /**
@@ -928,7 +1020,7 @@ var TurndownService = (function () {
       whitespace.leading +
       rule.replacement(content, node, this.options) +
       whitespace.trailing
-    )
+    );
   }
 
   /**
@@ -943,10 +1035,13 @@ var TurndownService = (function () {
   function join(output, replacement) {
     var s1 = trimTrailingNewlines(output);
     var s2 = trimLeadingNewlines(replacement);
-    var nls = Math.max(output.length - s1.length, replacement.length - s2.length);
-    var separator = '\n\n'.substring(0, nls);
+    var nls = Math.max(
+      output.length - s1.length,
+      replacement.length - s2.length
+    );
+    var separator = "\n\n".substring(0, nls);
 
-    return s1 + separator + s2
+    return s1 + separator + s2;
   }
 
   /**
@@ -959,15 +1054,14 @@ var TurndownService = (function () {
 
   function canConvert(input) {
     return (
-      input != null && (
-        typeof input === 'string' ||
-        (input.nodeType && (
-          input.nodeType === 1 || input.nodeType === 9 || input.nodeType === 11
-        ))
-      )
-    )
+      input != null &&
+      (typeof input === "string" ||
+        (input.nodeType &&
+          (input.nodeType === 1 ||
+            input.nodeType === 9 ||
+            input.nodeType === 11)))
+    );
   }
 
   return TurndownService;
-
-}());
+})();
