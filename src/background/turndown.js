@@ -161,7 +161,8 @@ var TurndownService = (function () {
     filter: "br",
 
     replacement: function (content, node, options) {
-      return options.br + "\n";
+      console.log("options", options);
+      return options.br + "\n\n";
     },
   };
 
