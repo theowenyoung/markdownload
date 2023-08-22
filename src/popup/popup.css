@@ -54,10 +54,9 @@
 }
 
 body {
-  width: 350px;
-  height: 500px;
+  width: 420px;
+  height: 600px;
   border-radius: 0.5em;
-  overflow: hidden;
   font-family: sans-serif;
   background: var(--bg);
   font-size: var(--font-size);
