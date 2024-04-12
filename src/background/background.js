@@ -787,8 +787,9 @@ async function getArticleFromDom(domString, lang) {
   article.pageTitle = dom.title;
   // add page title1, page title2, split with --- for dual title translate
   const titles = dom.title.split("---");
-  article.pageTitle1 = titles[0].trim();
-  article.pageTitle2 = (titles[1] || titles[0]).trim();
+  article.pageTitle1 = (titles[1] || titles[0]).trim();
+
+  article.pageTitle2 = titles[0].trim();
   // try to get pageTitleWithoutSiteName
   if (lang) {
     article.lang = lang;
